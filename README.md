@@ -67,7 +67,7 @@ Catcoin — это полнофункциональный интернет-ма�
 1. Откройте проект в Visual Studio Code
 
 Запустите VS Code и откройте папку с проектом:
-**File → Open Folder → выберите папку App **
+**File → Open Folder → выберите папку Catcoin-Store
 
 2. Откройте терминал
 
