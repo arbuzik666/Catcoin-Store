@@ -1,0 +1,52 @@
+{% extends "base.html" %}
+
+{% block title %}Мои заказы — Catcoin Store{% endblock %}
+
+{% block content %}
+<div class="orders-page">
+    <h1>📋 Мои заказы</h1>
+    
+    {% if orders %}
+    <div class="orders-list">
+        {% for order in orders %}
+        <div class="order-card">
+            <div class="order-header">
+                <div class="order-id">
+                    <span class="order-label">Заказ №{{ order.id }}</span>
+                    <span class="status-badge status-{{ order.status }}">{{ order.status }}</span>
+                </div>
+                <div class="order-date">
+                    {{ order.created_at.strftime('%d.%m.%Y в %H:%M') }}
+                </div>
+            </div>
+            
+            <div class="order-items">
+                {% for item in order.items %}
+                <div class="order-item">
+                    <img src="{{ item.product.get_image_url() }}" alt="{{ item.product.name }}"onerror="this.src='{{ url_for('static', filename='images/default_product.png') }}'">
+                    <div class="order-item-info">
+                        <span class="order-item-name">{{ item.product.name }}</span>
+                        <span class="order-item-qty">{{ item.quantity }} шт. × {{ "%.0f"|format(item.price) }} ₽</span>
+                    </div>
+                    <span class="order-item-total">{{ "%.0f"|format(item.total_price) }} ₽</span>
+                </div>
+                {% endfor %}
+            </div>
+            
+            <div class="order-footer">
+                <span>Итого:</span>
+                <span class="order-total">{{ "%.0f"|format(order.total_price) }} ₽</span>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+    {% else %}
+    <div class="orders-empty">
+        <div class="empty-icon">📋</div>
+        <h2>Заказов пока нет</h2>
+        <p>Здесь будет история ваших покупок</p>
+        <a href="{{ url_for('main.index') }}" class="btn btn-primary">Перейти в каталог</a>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}

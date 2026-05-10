@@ -1,0 +1,108 @@
+{% extends "base.html" %}
+
+{% block title %}
+    {% if search_query %}Поиск: {{ search_query }} — Catcoin Store
+    {% else %}Catcoin Store — Главная{% endif %}
+{% endblock %}
+
+{% block content %}
+<div class="hero">
+    <h1>🐱 Добро пожаловать в Catcoin!</h1>
+    <p>Милые товары для любителей котиков. Всё самое пушистое и уютное.</p>
+</div>
+
+<div class="search-bar">
+    <form method="GET" action="{{ url_for('main.index') }}" class="search-form">
+        <div class="search-input-wrapper">
+            <input type="text" name="q" class="search-input" 
+                   placeholder="🔍 Поиск товаров..." 
+                   value="{{ search_query if search_query else '' }}"
+                   autocomplete="off">
+            <button type="submit" class="search-btn">🔍</button>
+        </div>
+        {% if search_query %}
+        <a href="{{ url_for('main.index') }}" class="search-clear">✕ Сбросить</a>
+        {% endif %}
+    </form>
+</div>
+
+<div class="category-filter">
+    <a href="{{ url_for('main.index') }}" 
+       class="filter-tag {% if not current_category_id %}filter-tag-active{% endif %}">
+        🐾 Все товары
+    </a>
+    {% for category in categories %}
+    <a href="{{ url_for('main.index', category_id=category.id) }}" 
+       class="filter-tag {% if current_category_id == category.id %}filter-tag-active{% endif %}">
+        {{ category.name }}
+    </a>
+    {% endfor %}
+</div>
+
+{% if search_query %}
+    <h2 class="category-title">🔍 Результаты поиска: «{{ search_query }}»</h2>
+    <p class="category-description">Найдено товаров: {{ products|length }}</p>
+{% elif current_category_id %}
+    {% for category in categories %}
+        {% if category.id == current_category_id %}
+        <h2 class="category-title">🏷️ {{ category.name }}</h2>
+        <p class="category-description">{{ category.description }}</p>
+        {% endif %}
+    {% endfor %}
+{% endif %}
+
+<div class="products-grid">
+    {% if products %}
+        {% for product in products %}
+        <div class="product-card">
+            <a href="{{ url_for('main.product_detail', product_id=product.id) }}" class="product-card-link">
+                <img src="{{ product.get_image_url() }}" alt="{{ product.name.capitalize() }}"onerror="this.src='{{ url_for('static', filename='images/default_product.png') }}'">
+                <h3>{{ product.name.capitalize() }}</h3>
+                
+                <div class="product-rating">
+                    {% if product.avg_rating > 0 %}
+                    <span class="stars">
+                        {% for i in range(5) %}
+                            {% if i < product.avg_rating|int %}
+                            ★
+                            {% elif (product.avg_rating - i) >= 0.5 %}
+                            ⯨
+                            {% else %}
+                            ☆
+                            {% endif %}
+                        {% endfor %}
+                    </span>
+                    <span class="rating-text">{{ product.avg_rating }} ({{ product.reviews_count }})</span>
+                    {% else %}
+                    <span class="stars stars-empty">☆☆☆☆☆</span>
+                    <span class="rating-text">Нет отзывов</span>
+                    {% endif %}
+                </div>
+            </a>
+            <p class="price">{{ "%.0f"|format(product.price) }} ₽</p>
+            <p class="stock">
+                {% if product.in_stock %}
+                <span class="in-stock">✓ В наличии ({{ product.stock }} шт.)</span>
+                {% else %}
+                <span class="out-of-stock">✗ Нет в наличии</span>
+                {% endif %}
+            </p>
+            
+            {% if current_user.is_authenticated %}
+            <form method="POST" action="{{ url_for('cart.add_to_cart', product_id=product.id) }}">
+                <button type="submit" class="btn btn-primary" {% if not product.in_stock %}disabled{% endif %}>
+                    🛒 Добавить в корзину
+                </button>
+            </form>
+            {% else %}
+            <a href="{{ url_for('auth.login') }}" class="btn btn-primary">
+                Войдите для покупок
+            </a>
+            {% endif %}
+        </div>
+        {% endfor %}
+    {% else %}
+        
+    {% endif %}
+</div>
+{% endblock %}

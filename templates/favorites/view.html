@@ -1,0 +1,70 @@
+{% extends "base.html" %}
+
+{% block title %}Избранное — Catcoin Store{% endblock %}
+
+{% block content %}
+<div class="favorites-page">
+    <h1>❤️ Избранное</h1>
+    
+    {% if products %}
+    <div class="products-grid">
+        {% for product in products %}
+        <div class="product-card">
+            <a href="{{ url_for('main.product_detail', product_id=product.id) }}" class="product-card-link">
+                <img src="{{ product.get_image_url() }}" alt="{{ product.name.capitalize() }}"onerror="this.src='{{ url_for('static', filename='images/default_product.png') }}'">
+                <h3>{{ product.name.capitalize() }}</h3>
+                
+                <div class="product-rating">
+                    {% if product.avg_rating > 0 %}
+                    <span class="stars">
+                        {% for i in range(5) %}
+                            {% if i < product.avg_rating|int %}
+                            ★
+                            {% elif (product.avg_rating - i) >= 0.5 %}
+                            ⯨
+                            {% else %}
+                            ☆
+                            {% endif %}
+                        {% endfor %}
+                    </span>
+                    <span class="rating-text">{{ product.avg_rating }}</span>
+                    {% else %}
+                    <span class="stars stars-empty">☆☆☆☆☆</span>
+                    <span class="rating-text">Нет отзывов</span>
+                    {% endif %}
+                </div>
+            </a>
+            
+            <p class="price">{{ "%.0f"|format(product.price) }} ₽</p>
+            
+            <p class="stock">
+                {% if product.in_stock %}
+                <span class="in-stock">✓ В наличии</span>
+                {% else %}
+                <span class="out-of-stock">✗ Нет в наличии</span>
+                {% endif %}
+            </p>
+            
+            <div class="product-card-buttons">
+                <form method="POST" action="{{ url_for('cart.add_to_cart', product_id=product.id) }}" style="display: inline;">
+                    <button type="submit" class="btn btn-primary btn-sm" {% if not product.in_stock %}disabled{% endif %}>
+                        🛒 В корзину
+                    </button>
+                </form>
+                <form method="POST" action="{{ url_for('favorites.toggle_favorite', product_id=product.id) }}" style="display: inline;">
+                    <button type="submit" class="btn btn-secondary btn-sm">💔 Убрать</button>
+                </form>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+    {% else %}
+    <div class="favorites-empty">
+        <div class="empty-icon">😿</div>
+        <h2>В избранном пусто</h2>
+        <p>Добавляйте товары, нажимая на сердечко ❤️</p>
+        <a href="{{ url_for('main.index') }}" class="btn btn-primary">Перейти в каталог</a>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}
