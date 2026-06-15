@@ -1,0 +1,98 @@
+{% extends "base.html" %}
+
+{% block title %}Корзина — Catcoin Store{% endblock %}
+
+{% block content %}
+<div class="cart-page">
+    <h1>🛒 Ваша корзина</h1>
+    
+    {% if cart_items %}
+    <div class="cart-container">
+        
+
+        <div class="cart-items">
+            {% for item in cart_items %}
+            <div class="cart-item">
+                <div class="cart-item-image">
+                    <img src="{{ item.product.get_image_url() }}" alt="{{ item.product.name }}"onerror="this.src='{{ url_for('static', filename='images/default_product.png') }}'">
+                </div>
+                
+                <div class="cart-item-info">
+                    <a href="{{ url_for('main.product_detail', product_id=item.product.id) }}" class="cart-item-name">
+                        {{ item.product.name }}
+                    </a>
+                    <p class="cart-item-price">{{ "%.0f"|format(item.product.price) }} ₽ / шт.</p>
+                </div>
+                
+                <div class="cart-item-quantity">
+                    <form method="POST" action="{{ url_for('cart.update_cart', item_id=item.id) }}" class="quantity-form">
+                        <button type="button" class="qty-btn qty-minus" onclick="changeQty(this, -1)">−</button>
+                        <input type="number" name="quantity" value="{{ item.quantity }}" 
+                               min="1" max="{{ item.product.stock }}" class="qty-input" readonly>
+                        <button type="button" class="qty-btn qty-plus" onclick="changeQty(this, 1)">+</button>
+                        <button type="submit" class="qty-update-btn" style="display: none;">Обновить</button>
+                    </form>
+                </div>
+                
+                <div class="cart-item-total">
+                    {{ "%.0f"|format(item.total_price) }} ₽
+                </div>
+                
+                <div class="cart-item-remove">
+                    <form method="POST" action="{{ url_for('cart.remove_from_cart', item_id=item.id) }}">
+                        <button type="submit" class="btn-remove" title="Удалить">✕</button>
+                    </form>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+        
+
+        <div class="cart-summary">
+            <h2>Итого</h2>
+            <div class="summary-row">
+                <span>Товаров:</span>
+                <span>{{ total_items }} шт.</span>
+            </div>
+            <div class="summary-row summary-total">
+                <span>Сумма:</span>
+                <span>{{ "%.0f"|format(total) }} ₽</span>
+            </div>
+            <a href="{{ url_for('order.checkout') }}" class="btn btn-primary btn-block">
+    🐾 Оформить заказ
+</a>
+            <a href="{{ url_for('main.index') }}" class="btn btn-secondary btn-block">
+                Продолжить покупки
+            </a>
+        </div>
+        
+    </div>
+    {% else %}
+    <div class="cart-empty">
+        <div class="empty-cart-icon">🐱</div>
+        <h2>В корзине пусто</h2>
+        <p>Здесь появятся товары, которые вы добавите</p>
+        <a href="{{ url_for('main.index') }}" class="btn btn-primary">Перейти в каталог</a>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+function changeQty(btn, delta) {
+    const form = btn.closest('.quantity-form');
+    const input = form.querySelector('.qty-input');
+    const submitBtn = form.querySelector('.qty-update-btn');
+    
+    let newVal = parseInt(input.value) + delta;
+    const max = parseInt(input.max);
+    const min = parseInt(input.min);
+    
+    if (newVal >= min && newVal <= max) {
+        input.value = newVal;
+        submitBtn.click();  
+    }
+}
+</script>
+{% endblock %}

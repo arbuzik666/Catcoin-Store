@@ -1,0 +1,54 @@
+{% extends "base.html" %}
+
+{% block title %}Регистрация — Catcoin Store{% endblock %}
+
+{% block content %}
+<div class="auth-container">
+    <div class="auth-card">
+        <h1>🐾 Регистрация</h1>
+        <p class="auth-subtitle">Присоединяйтесь к сообществу Catcoin!</p>
+        
+        <form method="POST" action="{{ url_for('auth.register') }}" class="auth-form">
+            {{ form.hidden_tag() }}
+            
+            <div class="form-group">
+                {{ form.username.label }}
+                {{ form.username(class="form-input", placeholder="Ваше имя") }}
+                {% for error in form.username.errors %}
+                <span class="form-error">{{ error }}</span>
+                {% endfor %}
+            </div>
+            
+            <div class="form-group">
+                {{ form.email.label }}
+                {{ form.email(class="form-input", placeholder="ваш@email.ru") }}
+                {% for error in form.email.errors %}
+                <span class="form-error">{{ error }}</span>
+                {% endfor %}
+            </div>
+            
+            <div class="form-group">
+                {{ form.password.label }}
+                {{ form.password(class="form-input", placeholder="Минимум 6 символов") }}
+                {% for error in form.password.errors %}
+                <span class="form-error">{{ error }}</span>
+                {% endfor %}
+            </div>
+            
+            <div class="form-group">
+                {{ form.password2.label }}
+                {{ form.password2(class="form-input", placeholder="Повторите пароль") }}
+                {% for error in form.password2.errors %}
+                <span class="form-error">{{ error }}</span>
+                {% endfor %}
+            </div>
+            
+            {{ form.submit(class="btn btn-primary btn-block") }}
+        </form>
+        
+        <div class="auth-links">
+            <p>Уже есть аккаунт? <a href="{{ url_for('auth.login') }}">Войти</a></p>
+        </div>
+    </div>
+</div>
+{% endblock %}

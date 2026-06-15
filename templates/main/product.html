@@ -1,0 +1,238 @@
+{% extends "base.html" %}
+
+{% block title %}{{ product.name }} — Catcoin Store{% endblock %}
+
+{% block content %}
+<div class="product-detail">
+    
+    <div class="breadcrumbs">
+        <a href="{{ url_for('main.index') }}">← Назад в каталог</a>
+    </div>
+    
+    <div class="product-detail-grid">
+        
+        <div class="product-detail-image">
+            <img src="{{ product.get_image_url() }}" alt="{{ product.name.capitalize() }}"onerror="this.src='{{ url_for('static', filename='images/default_product.png') }}'">
+            {% if not product.in_stock %}
+            <div class="out-of-stock-badge">Нет в наличии</div>
+            {% endif %}
+        </div>
+        
+        <div class="product-detail-info">
+            <h1>{{ product.name.capitalize() }}</h1>
+            
+            <div class="product-detail-rating">
+                {% if product.avg_rating > 0 %}
+                <span class="stars stars-large">
+                    {% for i in range(5) %}
+                        {% if i < product.avg_rating|int %}
+                        ★
+                        {% elif (product.avg_rating - i) >= 0.5 %}
+                        ⯨
+                        {% else %}
+                        ☆
+                        {% endif %}
+                    {% endfor %}
+                </span>
+                <span class="rating-detail-text">{{ product.avg_rating }} из 5 ({{ product.reviews_count }} отзывов)</span>
+                {% else %}
+                <span class="stars stars-large stars-empty">☆☆☆☆☆</span>
+                <span class="rating-detail-text">Пока нет отзывов</span>
+                {% endif %}
+            </div>
+            
+            <div class="product-categories">
+                {% for category in product.categories %}
+                <span class="category-tag">{{ category.name }}</span>
+                {% endfor %}
+            </div>
+            
+            <div class="product-price">{{ "%.0f"|format(product.price) }} ₽</div>
+            
+            <div class="product-stock-info">
+                {% if product.in_stock %}
+                <span class="in-stock">✓ В наличии: {{ product.stock }} шт.</span>
+                {% else %}
+                <span class="out-of-stock">✗ Нет в наличии</span>
+                {% endif %}
+            </div>
+            
+            <div class="product-description">
+                <h3>Описание</h3>
+                <p>{{ product.description }}</p>
+            </div>
+            
+            <div class="product-actions">
+                {% if current_user.is_authenticated %}
+                <form method="POST" action="{{ url_for('cart.add_to_cart', product_id=product.id) }}" style="display: inline;">
+                    <button type="submit" class="btn btn-primary btn-large" {% if not product.in_stock %}disabled{% endif %}>
+                        🛒 Добавить в корзину
+                    </button>
+                </form>
+                {% else %}
+                <a href="{{ url_for('auth.login') }}" class="btn btn-primary btn-large">
+                    🛒 Войдите, чтобы добавить в корзину
+                </a>
+                {% endif %}
+                
+                {% if current_user.is_authenticated %}
+    {% set is_fav = namespace(found=false) %}
+    {% for fav in current_user.favorites %}
+        {% if fav.product_id == product.id %}
+            {% set is_fav.found = true %}
+        {% endif %}
+    {% endfor %}
+    
+    <button class="btn btn-secondary btn-large fav-toggle-detail" 
+            data-product-id="{{ product.id }}"
+            id="fav-btn-detail">
+        {% if is_fav.found %}
+        <span class="fav-icon">❤️</span> В избранном
+        {% else %}
+        <span class="fav-icon">🤍</span> В избранное
+        {% endif %}
+    </button>
+{% endif %}
+            </div>
+        </div>
+    </div>
+    
+    <div class="reviews-section">
+        <h2>🐾 Отзывы о товаре</h2>
+        
+        <div class="review-form-card">
+            <h3>Оставить отзыв</h3>
+            {% if current_user.is_authenticated %}
+                {% set has_purchased = namespace(found=false) %}
+                {% for order in current_user.orders %}
+                    {% if order.status != 'отменён' %}
+                        {% for item in order.items %}
+                            {% if item.product_id == product.id %}
+                                {% set has_purchased.found = true %}
+                            {% endif %}
+                        {% endfor %}
+                    {% endif %}
+                {% endfor %}
+                
+                {% if has_purchased.found %}
+                <form method="POST" action="{{ url_for('main.product_detail', product_id=product.id) }}">
+                    <div class="rating-input">
+                        <label>Ваша оценка:</label>
+                        <div class="star-rating-input">
+                            {% for i in range(5, 0, -1) %}
+                            <input type="radio" name="rating" value="{{ i }}" id="star{{ i }}" required>
+                            <label for="star{{ i }}">★</label>
+                            {% endfor %}
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label>Комментарий (необязательно)</label>
+                        <textarea name="comment" class="form-input form-textarea" rows="3" 
+                                  placeholder="Расскажите, что думаете о товаре..."></textarea>
+                    </div>
+                    <button type="submit" class="btn btn-primary">🐾 Отправить отзыв</button>
+                </form>
+                {% else %}
+                <p class="review-login-hint">🐱 Вы сможете оставить отзыв после покупки этого товара.</p>
+                {% endif %}
+            {% else %}
+            <p class="review-login-hint">🐱 <a href="{{ url_for('auth.login') }}">Войдите</a>, чтобы оставить отзыв.</p>
+            {% endif %}
+        </div>
+        
+<div class="reviews-list">
+    {% if reviews %}
+        {% for review in reviews %}
+        <div class="review-card" id="review-{{ review.id }}">
+            <div class="review-header">
+                <span class="review-user">🐱 {{ review.user.username }}</span>
+                <span class="review-stars">
+                    {% for i in range(5) %}
+                        {% if i < review.rating %}★{% else %}☆{% endif %}
+                    {% endfor %}
+                </span>
+                <span class="review-date">{{ review.created_at.strftime('%d.%m.%Y') }}</span>
+            </div>
+            
+            {% if review.comment %}
+            <p class="review-comment">{{ review.comment }}</p>
+            {% else %}
+            <p class="review-comment review-no-text">Без комментария</p>
+            {% endif %}
+            
+            {% if current_user.is_authenticated %}
+            <div class="review-actions">
+                {% if review.user_id == current_user.id %}
+                <button class="review-btn review-btn-edit" onclick="openEditForm('{{ review.id }}', '{{ review.rating }}', '{{ review.comment|escape }}')">
+                    ✏️
+                </button>
+                {% endif %}
+                
+                {% if review.user_id == current_user.id or current_user.is_admin %}
+                <form method="POST" action="{{ url_for('main.delete_review', review_id=review.id) }}" 
+                      style="display: inline;" 
+                      onsubmit="return confirm('Удалить этот отзыв?')">
+                    <button type="submit" class="review-btn review-btn-delete">🗑️</button>
+                </form>
+                {% endif %}
+            </div>
+            {% endif %}
+        </div>
+        
+        {% if review.user_id == current_user.id %}
+        <div class="review-card review-edit-form" id="edit-form-{{ review.id }}" style="display: none;">
+            <h4>✏️ Редактировать отзыв</h4>
+            <form method="POST" action="{{ url_for('main.edit_review', review_id=review.id) }}">
+                <div class="rating-input">
+                    <label>Ваша оценка:</label>
+                    <div class="star-rating-input star-edit" data-review-id="{{ review.id }}">
+                        {% for i in range(5, 0, -1) %}
+                        <input type="radio" name="rating" value="{{ i }}" id="edit-star-{{ review.id }}-{{ i }}">
+                        <label for="edit-star-{{ review.id }}-{{ i }}">★</label>
+                        {% endfor %}
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label>Комментарий</label>
+                    <textarea name="comment" class="form-input form-textarea" rows="3" 
+                              id="edit-comment-{{ review.id }}"></textarea>
+                </div>
+                <div class="review-edit-buttons">
+                    <button type="submit" class="btn btn-primary btn-sm">💾 Сохранить</button>
+                    <button type="button" class="btn btn-secondary btn-sm" onclick="closeEditForm('{{ review.id }}')">Отмена</button>
+                </div>
+            </form>
+        </div>
+        {% endif %}
+        {% endfor %}
+    {% else %}
+    <div class="no-reviews">
+        <p>😿 Пока никто не оставил отзыв. Будьте первым!</p>
+    </div>
+    {% endif %}
+</div>
+    </div>
+    
+</div>
+
+{% block extra_scripts %}
+<script>
+function openEditForm(reviewId, rating, comment) {
+    document.getElementById('review-' + reviewId).style.display = 'none';
+    document.getElementById('edit-form-' + reviewId).style.display = 'block';
+    
+    const stars = document.querySelectorAll('#edit-form-' + reviewId + ' .star-rating-input input');
+    stars.forEach(star => {
+        star.checked = (star.value == rating);
+    });
+    
+    document.getElementById('edit-comment-' + reviewId).value = comment;
+}
+
+function closeEditForm(reviewId) {
+    document.getElementById('review-' + reviewId).style.display = 'block';
+    document.getElementById('edit-form-' + reviewId).style.display = 'none';
+}
+</script>
+{% endblock %}
+{% endblock %}

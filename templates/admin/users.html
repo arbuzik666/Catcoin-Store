@@ -1,0 +1,42 @@
+{% extends "base.html" %}
+
+{% block title %}Пользователи — Catcoin Admin{% endblock %}
+
+{% block content %}
+<div class="admin-page">
+    <h1>👤 Пользователи</h1>
+    
+    <div class="admin-table-wrap">
+        <table class="admin-table">
+            <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>Имя</th>
+                    <th>Email</th>
+                    <th>Роль</th>
+                    <th>Дата регистрации</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for user in users %}
+                <tr>
+                    <td>{{ user.id }}</td>
+                    <td>{{ user.username }}</td>
+                    <td>{{ user.email }}</td>
+                    <td>
+                        {% if user.is_admin %}
+                        <span class="badge-admin">👑 Админ</span>
+                        {% else %}
+                        <span class="badge-user">🐱 Пользователь</span>
+                        {% endif %}
+                    </td>
+                    <td>{{ user.created_at.strftime('%d.%m.%Y') }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    
+    <a href="{{ url_for('admin.dashboard') }}" class="btn btn-secondary">← Назад в админ-панель</a>
+</div>
+{% endblock %}

@@ -1,0 +1,57 @@
+{% extends "base.html" %}
+
+{% block title %}Заказ №{{ order.id }} — Catcoin Admin{% endblock %}
+
+{% block content %}
+<div class="admin-page">
+    <div class="admin-header">
+        <h1>📋 Заказ №{{ order.id }}</h1>
+        <a href="{{ url_for('admin.admin_orders') }}" class="btn btn-secondary">← К списку заказов</a>
+    </div>
+    
+    <div class="order-detail-grid">
+        
+        
+        <div class="admin-info-card">
+            <h3>Информация</h3>
+            <p><strong>Покупатель:</strong> {{ order.user.username }}</p>
+            <p><strong>Email:</strong> {{ order.user.email }}</p>
+            <p><strong>Дата:</strong> {{ order.created_at.strftime('%d.%m.%Y в %H:%M') }}</p>
+            <p><strong>Сумма:</strong> <span class="detail-price">{{ "%.0f"|format(order.total_price) }} ₽</span></p>
+            
+            
+            <div class="status-update">
+                <p><strong>Текущий статус:</strong> <span class="status-badge status-{{ order.status }}">{{ order.status }}</span></p>
+                
+                <form method="POST" action="{{ url_for('admin.update_order_status', order_id=order.id) }}" class="status-form">
+                    <select name="status" class="form-input">
+                        <option value="новый" {% if order.status == 'новый' %}selected{% endif %}>🆕 Новый</option>
+                        <option value="обработан" {% if order.status == 'обработан' %}selected{% endif %}>✅ Обработан</option>
+                        <option value="отправлен" {% if order.status == 'отправлен' %}selected{% endif %}>📦 Отправлен</option>
+                        <option value="доставлен" {% if order.status == 'доставлен' %}selected{% endif %}>🏠 Доставлен</option>
+                        <option value="отменён" {% if order.status == 'отменён' %}selected{% endif %}>❌ Отменён</option>
+                    </select>
+                    <button type="submit" class="btn btn-primary">Обновить статус</button>
+                </form>
+            </div>
+        </div>
+        
+       
+        <div class="admin-info-card">
+            <h3>Товары в заказе</h3>
+            <div class="order-items-list">
+                {% for item in order.items %}
+                <div class="order-item-row">
+                    <img src="{{ item.product.get_image_url() }}" alt="{{ item.product.name }}"onerror="this.src='{{ url_for('static', filename='images/default_product.png') }}'">
+                    <div class="item-details">
+                        <span class="item-name">{{ item.product.name }}</span>
+                        <span class="item-meta">{{ item.quantity }} шт. × {{ "%.0f"|format(item.price) }} ₽</span>
+                    </div>
+                    <span class="item-total">{{ "%.0f"|format(item.total_price) }} ₽</span>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

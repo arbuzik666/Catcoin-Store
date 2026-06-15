@@ -1,0 +1,72 @@
+{% extends "base.html" %}
+
+{% block title %}Оформление заказа — Catcoin Store{% endblock %}
+
+{% block content %}
+<div class="checkout-page">
+    <h1>🐾 Оформление заказа</h1>
+    
+    <div class="checkout-container">
+        
+        <div class="checkout-items">
+            <h2>Ваш заказ</h2>
+            
+            {% for item in cart_items %}
+            <div class="checkout-item">
+                <div class="checkout-item-image">
+                    <img src="{{ item.product.get_image_url() }}" alt="{{ item.product.name }}"onerror="this.src='{{ url_for('static', filename='images/default_product.png') }}'">
+                </div>
+                <div class="checkout-item-info">
+                    <h4>{{ item.product.name }}</h4>
+                    <p>{{ item.quantity }} шт. × {{ "%.0f"|format(item.product.price) }} ₽</p>
+                </div>
+                <div class="checkout-item-total">
+                    {{ "%.0f"|format(item.total_price) }} ₽
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+        
+        <div class="checkout-summary">
+            <h2>Информация о заказе</h2>
+            
+            <div class="buyer-info">
+                <div class="info-row">
+                    <span class="info-icon">🐱</span>
+                    <span><strong>Покупатель:</strong> {{ current_user.username }}</span>
+                </div>
+                <div class="info-row">
+                    <span class="info-icon">📧</span>
+                    <span><strong>Email:</strong> {{ current_user.email }}</span>
+                </div>
+                <div class="info-row">
+                    <span class="info-icon">📦</span>
+                    <span><strong>Товаров:</strong> {{ cart_items|length }} наименований</span>
+                </div>
+            </div>
+            
+            <div class="total-block">
+                <div class="total-row">
+                    <span>Итого к оплате:</span>
+                    <span class="total-price">{{ "%.0f"|format(total) }} ₽</span>
+                </div>
+            </div>
+            
+            <p class="checkout-note">
+                 Заказ будет оформлен сразу после подтверждения.
+            </p>
+            
+            <form method="POST" action="{{ url_for('order.checkout') }}">
+                <button type="submit" class="btn btn-primary btn-block btn-large">
+                    🐾 Подтвердить заказ
+                </button>
+            </form>
+            
+            <a href="{{ url_for('cart.view_cart') }}" class="btn btn-secondary btn-block">
+                Вернуться в корзину
+            </a>
+        </div>
+        
+    </div>
+</div>
+{% endblock %}
